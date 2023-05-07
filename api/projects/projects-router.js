@@ -1,14 +1,13 @@
-// Write your "projects" router here!
 const express = require('express');
+
 const {
     validateProjectId,
     validateNewProject,
     validateProject
 } = require('./projects-middleware');
 
-const Project = require('./projects-model')
-
 const router = express.Router();
+const Project = require('./projects-model')
 
 router.get('/', (req, res, next) => {
     Project.get()
@@ -22,20 +21,19 @@ router.get('/:id', validateProjectId, (req, res) => {
     res.json(req.project)
 })
 
-router.post('/:id', validateNewProject, (req, res, next) => {
-    Project.insert
-        ({
-            name: req.name,
-            description: req.description,
-            completed: req.completed
-        })
+router.post('/', validateProject, (req, res, next) => {
+    Project.insert({
+        name: req.name,
+        description: req.description,
+        completed: req.completed
+    })
         .then(newProject => {
             res.status(201).json(newProject)
         })
         .catch(next)
 })
 
-router.put('/:id', validateProjectId, validateProject, (req, res, next) => {
+router.put('/:id', validateProjectId, validateNewProject, (req, res, next) => {
 
     Project.update(
         req.params.id,
@@ -43,6 +41,9 @@ router.put('/:id', validateProjectId, validateProject, (req, res, next) => {
             name: req.name,
             description: req.description,
             completed: req.completed
+        })
+        .then(() => {
+            return (Project.get(req.params.id))
         })
         .then(project => {
             res.json(project)
@@ -66,6 +67,14 @@ router.get('/:id/actions', validateProjectId, async (req, res, next) => {
         next(err)
     }
 });
+
+router.use((err, req, res) => {
+    res.status(err.status || 500).json({
+        customMessage: 'Something Bad Happened',
+        message: err.message,
+        stack: err.stack
+    })
+})
 
 
 module.exports = router
