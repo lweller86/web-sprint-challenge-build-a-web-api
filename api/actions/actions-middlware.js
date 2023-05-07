@@ -31,7 +31,7 @@ function validateAction(req, res, next) {
   } else {
     req.notes = notes.trim()
     req.description = description.trim()
-    req.project_id = project_id.trim
+    req.project_id = project_id
     next()
   }
 }
